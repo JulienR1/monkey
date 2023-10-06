@@ -1,6 +1,8 @@
 package lexer
 
-import "github.com/JulienR1/monkey/internal/pkg/token"
+import (
+	"github.com/JulienR1/monkey/internal/pkg/token"
+)
 
 type Lexer struct {
 	input        string
@@ -22,7 +24,13 @@ func (lexer *Lexer) NextToken() token.Token {
 
 	switch lexer.character {
 	case '=':
-		t = newToken(token.ASSIGN, lexer.character)
+		if lexer.peekChar() == '=' {
+			character := lexer.character
+			lexer.readChar()
+			t = token.Token{Type: token.EQUAL, Literal: string(character) + string(lexer.character)}
+		} else {
+			t = newToken(token.ASSIGN, lexer.character)
+		}
 	case ';':
 		t = newToken(token.SEMICOLON, lexer.character)
 	case '(':
@@ -37,6 +45,25 @@ func (lexer *Lexer) NextToken() token.Token {
 		t = newToken(token.COMMA, lexer.character)
 	case '+':
 		t = newToken(token.PLUS, lexer.character)
+	case '-':
+		t = newToken(token.MINUS, lexer.character)
+	case '!':
+		if lexer.peekChar() == '=' {
+			character := lexer.character
+			lexer.readChar()
+			t = token.Token{Type: token.NOT_EQUAL, Literal: string(character) + string(lexer.character)}
+		} else {
+			t = newToken(token.BANG, lexer.character)
+		}
+	case '*':
+		t = newToken(token.ASTERISK, lexer.character)
+	case '/':
+		t = newToken(token.SLASH, lexer.character)
+	case '<':
+		t = newToken(token.LESS_THAN, lexer.character)
+	case '>':
+		t = newToken(token.GREATER_THAN, lexer.character)
+
 	case 0:
 		t = token.Token{Type: token.EOF, Literal: ""}
 	default:
@@ -63,6 +90,13 @@ func (lexer *Lexer) readChar() {
 	}
 	lexer.position = lexer.readPosition
 	lexer.readPosition += 1
+}
+
+func (lexer *Lexer) peekChar() byte {
+	if lexer.readPosition >= len(lexer.input) {
+		return 0
+	}
+	return lexer.input[lexer.readPosition]
 }
 
 func (lexer *Lexer) readIdentifier() string {
